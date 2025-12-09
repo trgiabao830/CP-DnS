@@ -1,19 +1,28 @@
 package com.tgb.cp_dns.entity.auth;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.tgb.cp_dns.enums.EmployeeStatus;
 
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
 @Data
 @Table(name = "employees")
-public class Employee {
+public class Employee implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long empId;
+
+    @Column(unique = true, nullable = false)
+    private String username;
 
     private String fullName;
     private String phone;
@@ -23,6 +32,8 @@ public class Employee {
     @Enumerated(EnumType.STRING)
     private EmployeeStatus status;
     
+    @JsonFormat(pattern = "dd-MM-yyyy")
+    @Column(columnDefinition = "DATETIME(0)")
     private LocalDateTime createdAt;
 
     @ManyToMany(fetch = FetchType.EAGER)

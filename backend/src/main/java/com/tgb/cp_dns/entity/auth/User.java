@@ -1,16 +1,23 @@
 package com.tgb.cp_dns.entity.auth;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.tgb.cp_dns.enums.Gender;
 import com.tgb.cp_dns.enums.UserStatus;
 
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
 @Data
 @Table(name = "users")
-public class User {
+public class User implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
@@ -19,7 +26,8 @@ public class User {
     private String email;
     private String phone;
     private String password;
-    private LocalDateTime dob;
+    @JsonFormat(pattern = "dd-MM-yyyy")
+    private LocalDate dob;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;
@@ -27,7 +35,8 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserStatus status;
 
-    @Column(name = "created_at", updatable = false)
+    @JsonFormat(pattern = "dd-MM-yyyy")
+    @Column(columnDefinition = "DATETIME(0)")
     private LocalDateTime createdAt;
 
     @PrePersist

@@ -135,7 +135,7 @@ public class AuthService {
     @Transactional
     public void forgotPassword(ForgotPasswordRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Email không tồn tại trong hệ thống"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Email không tồn tại trong hệ thống"));
 
         Optional<PasswordResetToken> oldToken = tokenRepository.findByUser(user);
         oldToken.ifPresent(tokenRepository::delete);
@@ -152,15 +152,15 @@ public class AuthService {
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            throw new RuntimeException("Mật khẩu xác nhận không khớp");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mật khẩu xác nhận không khớp");
         }
 
         PasswordResetToken resetToken = tokenRepository.findByToken(request.getToken())
-                .orElseThrow(() -> new RuntimeException("Token không hợp lệ hoặc đã hết hạn"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token không hợp lệ hoặc đã hết hạn"));
 
         if (resetToken.isExpired()) {
             tokenRepository.delete(resetToken);
-            throw new RuntimeException("Token đã hết hạn, vui lòng yêu cầu lại");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token đã hết hạn, vui lòng yêu cầu lại");
         }
 
         User user = resetToken.getUser();

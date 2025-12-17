@@ -47,6 +47,11 @@ public class DataSeeder implements CommandLineRunner {
         createPermissionIfNotExists("USER_VIEW", "Xem danh sách khách hàng", "USER");
         createPermissionIfNotExists("USER_CREATE", "Tạo khách hàng mới", "USER");
         createPermissionIfNotExists("USER_LOCK", "Khóa tài khoản khách hàng", "USER");
+
+        createPermissionIfNotExists("RESTAURANT_VIEW", "Xem danh sách bàn/món ăn", "RESTAURANT");
+        createPermissionIfNotExists("RESTAURANT_CREATE", "Tạo bàn/món ăn mới", "RESTAURANT");
+        createPermissionIfNotExists("RESTAURANT_UPDATE", "Cập nhật bàn/món ăn", "RESTAURANT");
+        createPermissionIfNotExists("RESTAURANT_DELETE", "Xóa bàn/món ăn", "RESTAURANT");
         
         if (!employeeRepository.existsByUsername(adminUsername)) {
             Employee admin = new Employee();

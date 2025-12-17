@@ -1,5 +1,7 @@
 package com.tgb.cp_dns.entity.restaurant;
 
+import com.tgb.cp_dns.enums.AreaStatus;
+
 import jakarta.persistence.*;
 import lombok.Data;
 import java.util.List;
@@ -12,7 +14,12 @@ public class RestaurantArea {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long areaId;
     private String name;
-    private Boolean status;
+
+    @Enumerated(EnumType.STRING)
+    private AreaStatus status;
+
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
 
     @OneToMany(mappedBy = "area")
     private List<RestaurantTable> tables;

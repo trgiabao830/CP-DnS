@@ -2,6 +2,8 @@ package com.tgb.cp_dns.entity.restaurant;
 
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -14,10 +16,13 @@ public class FoodVariant {
     private String name;
     private Boolean isRequired;
 
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
+
     @ManyToOne
     @JoinColumn(name = "food_id")
     private Food food;
 
-    @OneToMany(mappedBy = "variant")
-    private List<FoodVariantOption> options;
+    @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL)
+    private List<FoodVariantOption> options = new ArrayList<>() ;
 }

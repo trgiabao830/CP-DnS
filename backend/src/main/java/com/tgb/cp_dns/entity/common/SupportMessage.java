@@ -17,6 +17,8 @@ public class SupportMessage {
     private SupportSession session;
 
     private String senderType;
+    private Long senderId;
+    private String senderName;
     private String message;
     private LocalDateTime createdAt;
 }

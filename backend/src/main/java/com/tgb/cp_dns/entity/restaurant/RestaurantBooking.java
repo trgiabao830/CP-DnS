@@ -12,6 +12,9 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
+
+import org.hibernate.annotations.BatchSize;
 
 @Entity
 @Data
@@ -38,18 +41,46 @@ public class RestaurantBooking {
 
     private Boolean isChargedToRoom;
 
-    @Column(columnDefinition = "json") 
-    private String customerInfo;
+    private String customerName;
+    private String customerPhone;
+    private String customerEmail;
 
     private LocalDateTime bookingTime;
+    private LocalDateTime endTime;
+    private Integer numberOfGuests;
+
+    private BigDecimal subTotal;
     private BigDecimal totalAmount;
-    
+    private BigDecimal depositAmount;
+
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
-    
+
+    private LocalDateTime paymentTime;
+
     @Enumerated(EnumType.STRING)
     private BookingStatus status;
 
-    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
+    private String accessToken;
+
+    private BigDecimal discountAmount = BigDecimal.ZERO;
+    
+    private String appliedCouponCode;
+
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 10)
     private List<RestaurantOrderDetail> orderDetails;
+
+    private LocalDateTime createdAt;
+
+    @Column(unique = true)
+    private String vnpTxnRef;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        if (this.accessToken == null) {
+            this.accessToken = UUID.randomUUID().toString();
+        }
+    }
 }

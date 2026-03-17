@@ -9,9 +9,12 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.BatchSize;
+
 @Entity
 @Data
 @Table(name = "foods")
+@BatchSize(size = 20)
 public class Food {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,7 +33,6 @@ public class Food {
     private FoodStatus status;
 
     @JsonIgnore
-    @Column(name = "is_deleted")
     private Boolean isDeleted = false;
 
     @ManyToOne
@@ -38,5 +40,7 @@ public class Food {
     private FoodCategory category;
     
     @OneToMany(mappedBy = "food", cascade = CascadeType.ALL)
+    @OrderBy("variantId ASC")
+    @BatchSize(size = 20)
     private List<FoodVariant> variants = new ArrayList<>();
 }

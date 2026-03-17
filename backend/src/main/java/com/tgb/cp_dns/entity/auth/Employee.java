@@ -36,6 +36,8 @@ public class Employee implements Serializable {
     @Column(columnDefinition = "DATETIME(0)")
     private LocalDateTime createdAt;
 
+    private boolean isDeleted = false;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "employee_permissions",

@@ -6,6 +6,8 @@ import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.BatchSize;
+
 @Entity
 @Data
 @Table(name = "food_variants")
@@ -16,7 +18,6 @@ public class FoodVariant {
     private String name;
     private Boolean isRequired;
 
-    @Column(name = "is_deleted")
     private Boolean isDeleted = false;
 
     @ManyToOne
@@ -24,5 +25,7 @@ public class FoodVariant {
     private Food food;
 
     @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL)
+    @BatchSize(size = 20)
+    @OrderBy("optionId ASC")
     private List<FoodVariantOption> options = new ArrayList<>() ;
 }

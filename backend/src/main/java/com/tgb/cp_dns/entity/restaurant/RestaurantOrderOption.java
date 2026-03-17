@@ -1,5 +1,7 @@
 package com.tgb.cp_dns.entity.restaurant;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -11,11 +13,17 @@ public class RestaurantOrderOption {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "detail_id")
     private RestaurantOrderDetail orderDetail;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "option_id")
     private FoodVariantOption option;
+
+    private String variantNameSnapshot;
+
+    private String optionNameSnapshot;
+
+    private BigDecimal priceAdjustmentSnapshot;
 }

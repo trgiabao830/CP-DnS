@@ -33,7 +33,8 @@ public class UserProfileController {
 
     @PatchMapping("/change-password")
     public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
-        SecurityUser securityUser = (SecurityUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        SecurityUser securityUser = (SecurityUser) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
         Long userId = securityUser.getUser().getUserId();
 
         userService.changePassword(userId, request);

@@ -39,6 +39,8 @@ public class User implements Serializable {
     @Column(columnDefinition = "DATETIME(0)")
     private LocalDateTime createdAt;
 
+    private boolean isDeleted = false;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

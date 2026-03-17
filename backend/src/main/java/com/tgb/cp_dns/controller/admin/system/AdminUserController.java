@@ -1,7 +1,9 @@
 package com.tgb.cp_dns.controller.admin.system;
 
 import com.tgb.cp_dns.dto.user.AdminCreateUserRequest;
+import com.tgb.cp_dns.dto.user.UpdateUserRequest;
 import com.tgb.cp_dns.dto.user.UserResponse;
+import com.tgb.cp_dns.service.SseNotificationService;
 import com.tgb.cp_dns.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +13,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @RequestMapping("/api/admin/users")
@@ -18,11 +21,20 @@ import org.springframework.web.bind.annotation.*;
 public class AdminUserController {
 
     private final UserService userService;
+    private final SseNotificationService sseService;
+
+    @GetMapping("/sse/subscribe")
+    public SseEmitter subscribeToEvents() {
+        return sseService.subscribe();
+    }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('USER_VIEW')") 
-    public ResponseEntity<Page<UserResponse>> getUsers(@PageableDefault(size = 10) Pageable pageable) {
-        return ResponseEntity.ok(userService.getAllUsers(pageable));
+    @PreAuthorize("hasAuthority('USER_VIEW')")
+    public ResponseEntity<Page<UserResponse>> getUsers(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String status,
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(userService.getAllUsers(keyword, status, pageable));
     }
 
     @GetMapping("/{id}")
@@ -38,10 +50,24 @@ public class AdminUserController {
         return ResponseEntity.ok("Tạo người dùng thành công");
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('USER_UPDATE')")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request) {
+        userService.updateUserByAdmin(id, request);
+        return ResponseEntity.ok("Cập nhật thông tin người dùng thành công");
+    }
+
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAuthority('USER_LOCK')")
+    @PreAuthorize("hasAuthority('USER_UPDATE')")
     public ResponseEntity<?> toggleStatus(@PathVariable Long id) {
         userService.toggleUserStatus(id);
         return ResponseEntity.ok("Thay đổi trạng thái người dùng thành công");
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('USER_DELETE')")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
     }
 }

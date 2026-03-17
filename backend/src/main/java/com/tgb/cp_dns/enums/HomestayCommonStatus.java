@@ -1,0 +1,5 @@
+package com.tgb.cp_dns.enums;
+
+public enum HomestayCommonStatus {
+    ACTIVE, INACTIVE
+}

@@ -25,7 +25,8 @@ public class AdminProfileController {
 
     @PatchMapping("/change-password")
     public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
-        SecurityUser securityUser = (SecurityUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        SecurityUser securityUser = (SecurityUser) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
         Long empId = securityUser.getEmployee().getEmpId();
 
         employeeService.changePassword(empId, request);

@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.List;
 
 @Data
 @Builder
@@ -16,5 +16,13 @@ public class EmployeeResponse {
     private String jobTitle;
     private String status;
     private LocalDateTime createdAt;
-    private Set<String> permissions;
+    private List<PermissionDto> permissions;
+
+    @Data
+    @Builder
+    public static class PermissionDto {
+        private Long id;
+        private String code;
+        private String description;
+    }
 }

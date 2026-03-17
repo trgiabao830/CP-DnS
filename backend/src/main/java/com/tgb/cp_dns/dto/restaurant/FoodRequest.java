@@ -8,6 +8,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.tgb.cp_dns.enums.FoodStatus;
+
 @Data
 public class FoodRequest {
     @NotBlank(message = "Tên món ăn không được để trống")
@@ -20,9 +22,12 @@ public class FoodRequest {
     private BigDecimal basePrice;
 
     private BigDecimal discountPrice;
+
+    @NotNull(message = "Trạng thái không được để trống")
+    private FoodStatus status;
     private String imageUrl;
     private Integer displayOrder;
-    
+
     @NotNull(message = "Vui lòng chọn danh mục")
     private Long categoryId;
 

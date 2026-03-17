@@ -25,6 +25,6 @@ public class UpdateUserRequest {
     @NotNull(message = "Giới tính không được để trống")
     private Gender gender;
 
-    @JsonFormat(pattern = "dd-MM-yyyy")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dob;
 }

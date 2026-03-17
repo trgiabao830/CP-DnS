@@ -9,7 +9,9 @@ import com.tgb.cp_dns.enums.UserStatus;
 import com.tgb.cp_dns.repository.auth.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,20 +24,40 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SseNotificationService sseService;
 
     @Transactional(readOnly = true)
-    public Page<UserResponse> getAllUsers(Pageable pageable) {
-        return userRepository.findAll(pageable)
-                .map(this::mapToResponse);
+    public Page<UserResponse> getAllUsers(String keyword, String statusStr, Pageable pageable) {
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.ASC, "userId"));
+
+        String finalKeyword = null;
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            finalKeyword = "%" + keyword.trim().toLowerCase() + "%";
+        }
+
+        UserStatus finalStatus = null;
+        if (statusStr != null && !statusStr.trim().isEmpty()) {
+            try {
+                finalStatus = UserStatus.valueOf(statusStr.trim().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                finalStatus = null;
+            }
+        }
+
+        Page<User> userPage = userRepository.searchUsers(finalKeyword, finalStatus, sortedPageable);
+        return userPage.map(this::mapToResponse);
     }
 
     @Transactional(readOnly = true)
     public UserResponse getUserDetail(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND ,"Người dùng không tồn tại"));
+        User user = userRepository.findByUserIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Người dùng không tồn tại"));
         return mapToResponse(user);
     }
-    
+
     @Transactional(readOnly = true)
     public UserResponse getUserProfile(Long userId) {
         return getUserDetail(userId);
@@ -43,16 +65,16 @@ public class UserService {
 
     @Transactional
     public void createUserByAdmin(AdminCreateUserRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmailAndIsDeletedFalse(request.getEmail())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email này đã được sử dụng");
         }
 
-        if (userRepository.existsByPhone(request.getPhone())) {
+        if (userRepository.existsByPhoneAndIsDeletedFalse(request.getPhone())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Số điện thoại này đã được sử dụng");
         }
-        
+
         if (!request.getPassword().equals(request.getConfirmPassword())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mật khẩu và mật khẩu xác nhận không khớp."); 
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mật khẩu và mật khẩu xác nhận không khớp.");
         }
 
         User user = new User();
@@ -63,14 +85,54 @@ public class UserService {
         user.setGender(request.getGender());
         user.setDob(request.getDob());
         user.setStatus(UserStatus.ACTIVE);
+        user.setDeleted(false);
+
+        User savedUser = userRepository.save(user);
+        sseService.sendNotification("USER_UPDATE", savedUser.getUserId());
+    }
+
+    @Transactional
+    public void updateUserByAdmin(Long userId, UpdateUserRequest request) {
+        User user = userRepository.findByUserIdAndIsDeletedFalse(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Người dùng không tồn tại"));
+
+        String newPhone = request.getPhone() != null ? request.getPhone().trim() : null;
+        String newEmail = request.getEmail() != null ? request.getEmail().trim() : null;
+
+        if (newPhone != null && !newPhone.isBlank()) {
+            if (!newPhone.equals(user.getPhone()) && userRepository.existsByPhoneAndIsDeletedFalse(newPhone)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Số điện thoại này đã được sử dụng");
+            }
+            user.setPhone(newPhone);
+        }
+
+        if (newEmail != null && !newEmail.isBlank()) {
+            if (!newEmail.equals(user.getEmail()) && userRepository.existsByEmailAndIsDeletedFalse(newEmail)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Email này đã được sử dụng");
+            }
+            user.setEmail(newEmail);
+        }
+
+        if (request.getFullName() != null && !request.getFullName().isBlank()) {
+            user.setFullName(request.getFullName().trim());
+        }
         
+        if (request.getDob() != null) {
+            user.setDob(request.getDob());
+        }
+        
+        if (request.getGender() != null) {
+            user.setGender(request.getGender());
+        }
+
         userRepository.save(user);
+        sseService.sendNotification("USER_UPDATE", userId);
     }
 
     @Transactional
     public void toggleUserStatus(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND ,"Người dùng không tồn tại"));
+        User user = userRepository.findByUserIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Người dùng không tồn tại"));
 
         if (user.getStatus() == UserStatus.ACTIVE) {
             user.setStatus(UserStatus.LOCKED);
@@ -78,11 +140,12 @@ public class UserService {
             user.setStatus(UserStatus.ACTIVE);
         }
         userRepository.save(user);
+        sseService.sendNotification("USER_UPDATE", id);
     }
 
     @Transactional
     public void changePassword(Long userId, ChangePasswordRequest request) {
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByUserIdAndIsDeletedFalse(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Người dùng không tồn tại"));
 
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
@@ -98,21 +161,20 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse updateProfile(Long userId, UpdateUserRequest request) {
-        User user = userRepository.findById(userId)
+    public void deleteUser(Long userId) {
+        User user = userRepository.findByUserIdAndIsDeletedFalse(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Người dùng không tồn tại"));
 
-        if (!user.getEmail().equals(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email này đã được sử dụng");
-        }
+        user.setDeleted(true);
 
-        user.setFullName(request.getFullName());
-        user.setEmail(request.getEmail());
-        user.setDob(request.getDob());
-        user.setGender(request.getGender());
+        userRepository.save(user);
+        sseService.sendNotification("USER_UPDATE", userId);
+    }
 
-        User savedUser = userRepository.save(user);
-        return mapToResponse(savedUser);
+    @Transactional
+    public UserResponse updateProfile(Long userId, UpdateUserRequest request) {
+        updateUserByAdmin(userId, request);
+        return getUserDetail(userId);
     }
 
     private UserResponse mapToResponse(User user) {

@@ -1,5 +1,6 @@
 package com.tgb.cp_dns.entity.restaurant;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tgb.cp_dns.enums.AreaStatus;
 
 import jakarta.persistence.*;
@@ -18,9 +19,10 @@ public class RestaurantArea {
     @Enumerated(EnumType.STRING)
     private AreaStatus status;
 
-    @Column(name = "is_deleted")
+    @JsonIgnore
     private Boolean isDeleted = false;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "area")
     private List<RestaurantTable> tables;
 }

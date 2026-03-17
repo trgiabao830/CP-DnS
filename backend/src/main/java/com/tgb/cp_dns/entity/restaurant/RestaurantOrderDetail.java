@@ -3,7 +3,10 @@ package com.tgb.cp_dns.entity.restaurant;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
+
+import org.hibernate.annotations.BatchSize;
 
 @Entity
 @Data
@@ -13,18 +16,25 @@ public class RestaurantOrderDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long detailId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "booking_id")
     private RestaurantBooking booking;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "food_id")
     private Food food;
+
+    private String foodNameSnapshot;
+    private String foodImageSnapshot;
 
     private Integer quantity;
     private BigDecimal unitPrice;
     private BigDecimal totalPrice;
 
+    @Column(length = 200) 
+    private String note;
+
     @OneToMany(mappedBy = "orderDetail", cascade = CascadeType.ALL)
-    private List<RestaurantOrderOption> selectedOptions;
+    @BatchSize(size = 10)
+    private List<RestaurantOrderOption> selectedOptions = new ArrayList<>();
 }

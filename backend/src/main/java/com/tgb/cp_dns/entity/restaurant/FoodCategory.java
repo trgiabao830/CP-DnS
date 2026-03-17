@@ -21,7 +21,6 @@ public class FoodCategory {
     private CategoryStatus status;
 
     @JsonIgnore
-    @Column(name = "is_deleted")
     private Boolean isDeleted = false;
 
     @JsonIgnore

@@ -22,7 +22,7 @@ public class ClientAuthController {
     public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
         return ResponseEntity.ok(authService.loginUser(request, httpRequest));
     }
-    
+
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest request) {
         authService.registerUser(request);

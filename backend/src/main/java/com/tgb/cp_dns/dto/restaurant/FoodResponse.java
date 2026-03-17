@@ -15,6 +15,7 @@ public class FoodResponse {
     private BigDecimal discountPrice;
     private String imageUrl;
     private String status;
+    private Long categoryId;
     private String categoryName;
     private List<VariantDto> variants;
 
@@ -35,6 +36,7 @@ public class FoodResponse {
         private BigDecimal priceAdjustment;
         private String status;
         private Long linkedFoodId;
+        private Long linkedFoodCategoryId;
         private List<VariantDto> linkedVariants;
     }
 }

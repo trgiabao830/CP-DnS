@@ -19,7 +19,6 @@ public class FoodVariantOption {
     @Enumerated(EnumType.STRING)
     private OptionStatus status = OptionStatus.AVAILABLE;
 
-    @Column(name = "is_deleted")
     private Boolean isDeleted = false;
 
     @ManyToOne

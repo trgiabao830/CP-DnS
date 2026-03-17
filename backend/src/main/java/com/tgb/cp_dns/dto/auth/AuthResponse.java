@@ -10,5 +10,12 @@ public class AuthResponse {
     private Long id;
     private String name;
     private String role;
-    private Set<String> permissions;
+    private Set<PermissionDto> permissions;
+
+    @Data
+    @Builder
+    public static class PermissionDto {
+        private String code;
+        private String description;
+    }
 }

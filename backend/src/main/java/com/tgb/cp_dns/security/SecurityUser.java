@@ -16,19 +16,26 @@ import java.util.stream.Collectors;
 
 public class SecurityUser implements UserDetails {
 
-    @Getter private User user;
-    @Getter private Employee employee;
+    @Getter
+    private User user;
+    @Getter
+    private Employee employee;
 
-    public SecurityUser(User user) { this.user = user; }
-    public SecurityUser(Employee employee) { this.employee = employee; }
+    public SecurityUser(User user) {
+        this.user = user;
+    }
+
+    public SecurityUser(Employee employee) {
+        this.employee = employee;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        
+
         if (user != null) {
             authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-        } else if (employee != null) { 
+        } else if (employee != null) {
             authorities.add(new SimpleGrantedAuthority("ROLE_EMPLOYEE"));
             if (employee.getPermissions() != null) {
                 authorities.addAll(employee.getPermissions().stream()
@@ -40,19 +47,36 @@ public class SecurityUser implements UserDetails {
     }
 
     @Override
-    public String getPassword() { return user != null ? user.getPassword() : employee.getPassword(); }
+    public String getPassword() {
+        return user != null ? user.getPassword() : employee.getPassword();
+    }
 
     @Override
-    public String getUsername() { return user != null ? user.getPhone() : employee.getUsername(); }
+    public String getUsername() {
+        return user != null ? user.getPhone() : employee.getUsername();
+    }
 
     @Override
     public boolean isEnabled() {
-        if (user != null) return user.getStatus() == UserStatus.ACTIVE;
-        if (employee != null) return employee.getStatus() == EmployeeStatus.ACTIVE;
+        if (user != null)
+            return user.getStatus() == UserStatus.ACTIVE;
+        if (employee != null)
+            return employee.getStatus() == EmployeeStatus.ACTIVE;
         return false;
     }
 
-    @Override public boolean isAccountNonExpired() { return true; }
-    @Override public boolean isAccountNonLocked() { return true; }
-    @Override public boolean isCredentialsNonExpired() { return true; }
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
 }
